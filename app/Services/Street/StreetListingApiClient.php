@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
  * Base JSON:API client for Street listing feeds.
  * Concrete clients (Sales/Lettings) supply their own endpoint path.
  */
-final class StreetListingApiClient
+class StreetListingApiClient
 {
     public function __construct(
         private string $baseUrl,

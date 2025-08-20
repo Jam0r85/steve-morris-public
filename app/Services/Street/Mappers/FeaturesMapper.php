@@ -6,7 +6,7 @@ namespace App\Services\Street\Mappers;
 
 use App\Services\Street\Support\IncludedIndex;
 
-final class FeaturesMapper
+class FeaturesMapper
 {
     /**
      * Extracts feature names from the property relationships + included.

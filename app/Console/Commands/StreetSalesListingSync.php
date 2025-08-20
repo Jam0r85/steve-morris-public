@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 
-final class StreetSalesListingSync extends Command
+class StreetSalesListingSync extends Command
 {
     protected $signature = 'street:sales:sync
         {--size= : Base page size (defaults to config)}
@@ -74,7 +74,7 @@ final class StreetSalesListingSync extends Command
             'filter[min_bedrooms]' => $this->option('min_bedrooms'),
             'filter[status]' => $this->option('status'), // CSV
             // NOTE: include_archived, branch, features etc can be added similarly
-        ], fn($v) => null !== $v && '' !== $v);
+        ], fn ($v) => null !== $v && '' !== $v);
 
         $client = StreetListingApiClient::sales();
 

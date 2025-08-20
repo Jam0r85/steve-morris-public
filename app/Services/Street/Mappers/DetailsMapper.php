@@ -7,7 +7,7 @@ namespace App\Services\Street\Mappers;
 use App\Services\Street\Support\IncludedIndex;
 use Carbon\Carbon;
 
-final class DetailsMapper
+class DetailsMapper
 {
     /**
      * Extract descriptions + extra details from included `details`.
@@ -71,7 +71,7 @@ final class DetailsMapper
             }
         }
         if ($cands) {
-            usort($cands, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+            usort($cands, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
             $out['description'] = $cands[0];
         }
 

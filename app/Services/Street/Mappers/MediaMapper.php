@@ -9,7 +9,7 @@ use App\Services\Street\Support\IncludedIndex;
 /**
  * Orchestrator that delegates to focused sub-mappers by media type.
  */
-final class MediaMapper
+class MediaMapper
 {
     /**
      * Build media rows for property_media.
@@ -37,7 +37,7 @@ final class MediaMapper
             return [];
         }
         if (is_array($data) && array_is_list($data)) {
-            return array_values(array_filter(array_map(fn($r) => $r['id'] ?? null, $data)));
+            return array_values(array_filter(array_map(fn ($r) => $r['id'] ?? null, $data)));
         }
 
         return isset($data['id']) ? [$data['id']] : [];
@@ -47,7 +47,7 @@ final class MediaMapper
 /**
  * Shared helpers for extracting urls/metadata from included attributes.
  */
-final class MediaExtract
+class MediaExtract
 {
     /** @return array{canonical:?string, thumbnail:?string, small:?string, medium:?string, large:?string, hero:?string, full:?string} */
     public static function urls(array $attrs): array
@@ -80,7 +80,7 @@ final class MediaExtract
 /**
  * IMAGES (category = 'photo')
  */
-final class ImagesMediaMapper
+class ImagesMediaMapper
 {
     /**
      * @return array<int,array{category:string,url:string,sort_order:int,width:?int,height:?int,is_image:?bool,media_type:?string,title:?string,url_thumbnail:?string,url_small:?string,url_medium:?string,url_large:?string,url_hero:?string,url_full:?string}>
@@ -131,7 +131,7 @@ final class ImagesMediaMapper
 /**
  * FLOORPLANS (category = 'floorplan')
  */
-final class FloorplansMediaMapper
+class FloorplansMediaMapper
 {
     /**
      * @return array<int,array{category:string,url:string,sort_order:int,width:?int,height:?int,is_image:?bool,media_type:?string,title:?string,url_thumbnail:?string,url_small:?string,url_medium:?string,url_large:?string,url_hero:?string,url_full:?string}>
@@ -181,7 +181,7 @@ final class FloorplansMediaMapper
 /**
  * EPC (category = 'epc')
  */
-final class EpcMediaMapper
+class EpcMediaMapper
 {
     /**
      * @return array<int,array{category:string,url:string,sort_order:int,width:?int,height:?int,is_image:?bool,media_type:?string,title:?string,url_thumbnail:?string,url_small:?string,url_medium:?string,url_large:?string,url_hero:?string,url_full:?string}>

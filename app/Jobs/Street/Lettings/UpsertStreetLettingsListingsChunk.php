@@ -16,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
-final class UpsertStreetLettingsListingsChunk implements ShouldQueue
+class UpsertStreetLettingsListingsChunk implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -157,17 +157,23 @@ final class UpsertStreetLettingsListingsChunk implements ShouldQueue
         }
     }
 
-    public function failed(Throwable $exception): void
+    public function failed(Throwable $e): void
     {
-        $jobName = static::class;
+        $to = config('services.street.failed_jobs_email');
+        $env = app()->environment();
+        $host = gethostname();
+        $job = static::class;
 
-        $message = "Street sync job failed!\n\n"
-            . "Job: {$jobName}\n"
-            . "Exception: {$exception->getMessage()}";
+        $message = "Street **JOB** failed\n\n"
+                 . "Job: {$job}\n"
+                 . "Env: {$env}\n"
+                 . "Host: {$host}\n"
+                 . 'When: ' . now()->toDateTimeString() . "\n"
+                 . 'Exception: ' . get_class($e) . "\n"
+                 . 'Message: ' . $e->getMessage();
 
-        Mail::raw($message, function ($mail): void {
-            $mail->to(config('services.street.failed_jobs_email'))
-                ->subject('⚠️ Street Sync Job Failed');
+        Mail::raw($message, function ($mail) use ($to, $env, $job): void {
+            $mail->to($to)->subject("❌ [JOB][{$env}] {$job} failed");
         });
     }
 }

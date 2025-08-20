@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 
-final class StreetLettingsListingSync extends Command
+class StreetLettingsListingSync extends Command
 {
     protected $signature = 'street:lettings:sync
         {--size= : Base page size (defaults to config)}
@@ -72,7 +72,7 @@ final class StreetLettingsListingSync extends Command
             'filter[max_price]' => $this->option('max_price'),
             'filter[min_bedrooms]' => $this->option('min_bedrooms'),
             'filter[status]' => $this->option('status'), // CSV
-        ], fn($v) => null !== $v && '' !== $v);
+        ], fn ($v) => null !== $v && '' !== $v);
 
         $client = StreetListingApiClient::lettings();
 

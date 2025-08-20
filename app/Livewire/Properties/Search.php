@@ -18,11 +18,6 @@ class Search extends Component
     #[Rule('required|in:sales,lettings')]
     public string $channel = 'lettings';
 
-    // URL-synced filters
-    #[Url(as: 'q')]
-    #[Rule('nullable|string|min:2|max:80')]
-    public ?string $search = null;
-
     #[Url]
     #[Rule('nullable|integer|min:0|max:10')]
     public ?int $bedrooms = null;
@@ -37,18 +32,22 @@ class Search extends Component
 
     #[Url]
     #[Rule('array|max:20')]
-    public array $features = []; // reserved for future UI
+    public array $features = [];
 
     #[Url]
     #[Rule('nullable|string|in:newest,price_asc,price_desc,beds_asc,beds_desc')]
     public ?string $sort = 'newest';
 
-    // Include inactive (applied/reserved/SSTC) listings; default OFF
     #[Url(as: 'incl_inactive')]
     #[Rule('boolean')]
     public bool $includeInactive = false;
 
-    /** Normalise incoming values each request cycle */
+    public function mount(): void
+    {
+        $this->loadFiltersFromSessionIfNoQuery();
+        $this->hydrate();
+    }
+
     public function hydrate(): void
     {
         foreach (['bedrooms', 'priceMin', 'priceMax'] as $p) {
@@ -58,9 +57,8 @@ class Search extends Component
         }
 
         if ( ! empty($this->features)) {
-            $this->features = array_values(
-                array_intersect($this->features, $this->allowedFeatures()),
-            );
+            $allowed = ['garden', 'garage', 'parking', 'balcony', 'new_build', 'furnished', 'unfurnished', 'pet_friendly', 'ensuite'];
+            $this->features = array_values(array_intersect($this->features, $allowed));
         }
 
         if ( ! in_array($this->channel, ['sales', 'lettings'], true)) {
@@ -72,7 +70,6 @@ class Search extends Component
         }
     }
 
-    /** Reset pagination + validate only the changed prop */
     public function updated($name, $value): void
     {
         if (in_array($name, ['bedrooms', 'priceMin', 'priceMax'], true) && '' === $value) {
@@ -80,17 +77,16 @@ class Search extends Component
         }
 
         $this->validateOnly($name, array_merge($this->rules(), [
-            'features.*' => ['string', ValRule::in($this->allowedFeatures())],
+            'features.*' => ['string', ValRule::in(['garden', 'garage', 'parking', 'balcony', 'new_build', 'furnished', 'unfurnished', 'pet_friendly', 'ensuite'])],
         ]));
 
         $this->resetPage();
+        $this->storeFiltersInSession();
     }
 
-    /** Computed: whether any filters are active (for disabling the Reset button) */
     public function getHasActiveFiltersProperty(): bool
     {
-        return ! empty($this->search)
-            || ! empty($this->bedrooms)
+        return ! empty($this->bedrooms)
             || ! empty($this->priceMin)
             || ! empty($this->priceMax)
             || ! empty($this->features)
@@ -100,27 +96,25 @@ class Search extends Component
 
     public function render()
     {
-        // Harden all URL inputs each render
         $this->validate($this->rules());
+        $this->storeFiltersInSession();
 
         $q = Property::query()
-            ->select('properties.*')     // avoid duplicate columns from joins
-            ->distinct()                 // protect against join duplicates
+            ->select('properties.*')
+            ->distinct()
             ->withPrimaryMedia();
 
-        // Constrain by channel (prevents cross-over)
         if ('sales' === $this->channel) {
             $q->whereNotNull('properties.price_sales');
         } else {
             $q->whereNotNull('properties.price_lettings');
         }
 
-        // Active/inactive filter
-        if ($this->includeInactive) {
-            $q->whereIn('properties.is_active', [1, 0]);
-        } else {
-            $q->where('properties.is_active', 1);
-        }
+        $q->when(
+            $this->includeInactive,
+            fn ($w) => $w->whereIn('properties.is_active', [1, 0]),
+            fn ($w) => $w->where('properties.is_active', 1)
+        );
 
         // Bedrooms (min)
         if (null !== $this->bedrooms) {
@@ -136,28 +130,16 @@ class Search extends Component
         }
         $q->when($min > 0 || $max < PHP_INT_MAX, fn ($w) => $w->whereBetween($priceCol, [$min, $max]));
 
-        // Keyword search (optional)
-        if ($this->search) {
-            $term = '%' . mb_trim($this->search) . '%';
-            $q->where(function ($w) use ($term): void {
-                $w->where('properties.address_single_line', 'like', $term)
-                    ->orWhere('properties.address_postcode', 'like', $term)
-                    ->orWhere('properties.address_town', 'like', $term);
-            });
-        }
-
-        // Features (example JSON contains; adjust to your schema)
+        // Features (example JSON contains)
         if ( ! empty($this->features)) {
             foreach ($this->features as $feature) {
                 $q->whereJsonContains('properties.features', $feature);
             }
         }
 
-        // Sort
         $this->applySorting($q);
 
-        // Faster pagination
-        $properties = $q->simplePaginate();
+        $properties = $q->simplePaginate(24);
 
         return view('livewire.properties.search', [
             'properties' => $properties,
@@ -168,34 +150,21 @@ class Search extends Component
     public function resetFilters(): void
     {
         $this->reset([
-            'search',
-            'bedrooms',
-            'priceMin',
-            'priceMax',
-            'features',
-            'sort',
-            'includeInactive',
+            'bedrooms', 'priceMin', 'priceMax', 'features', 'sort', 'includeInactive',
         ]);
 
         $this->sort = 'newest';
         $this->includeInactive = false;
+
+        session()->forget($this->sessionKey());
+
+        $this->resetPage();
     }
 
-    /** Whitelist of feature slugs allowed from the UI */
-    protected function allowedFeatures(): array
-    {
-        return [
-            'garden', 'garage', 'parking', 'balcony', 'new_build',
-            'furnished', 'unfurnished', 'pet_friendly', 'ensuite',
-        ];
-    }
-
-    /** Full validation rules */
     protected function rules(): array
     {
         return [
             'channel' => ['required', ValRule::in(['sales', 'lettings'])],
-            'search' => ['nullable', 'string', 'min:2', 'max:80'],
             'bedrooms' => ['nullable', 'integer', 'min:0', 'max:10'],
             'priceMin' => ['nullable', 'integer', 'min:0'],
             'priceMax' => ['nullable', 'integer', 'min:0', 'gte:priceMin'],
@@ -205,7 +174,55 @@ class Search extends Component
         ];
     }
 
-    /** Whitelisted sort mapping */
+    private function sessionKey(): string
+    {
+        return "search.filters.{$this->channel}";
+    }
+
+    private function urlAliasMap(): array
+    {
+        return [
+            'priceMin' => 'min_price',
+            'priceMax' => 'max_price',
+            'includeInactive' => 'incl_inactive',
+        ];
+    }
+
+    private function persistedFilterKeys(): array
+    {
+        return ['bedrooms', 'priceMin', 'priceMax', 'features', 'sort', 'includeInactive'];
+    }
+
+    private function loadFiltersFromSessionIfNoQuery(): void
+    {
+        $saved = session($this->sessionKey(), []);
+        if (empty($saved) || ! is_array($saved)) {
+            return;
+        }
+
+        $qs = request()->query();
+        $aliases = $this->urlAliasMap();
+
+        foreach ($this->persistedFilterKeys() as $prop) {
+            $qsKey = $aliases[$prop] ?? $prop;
+
+            $providedInUrl = array_key_exists($qsKey, $qs) && '' !== $qs[$qsKey] && null !== $qs[$qsKey];
+
+            if ( ! $providedInUrl && array_key_exists($prop, $saved)) {
+                $this->{$prop} = $saved[$prop];
+            }
+        }
+    }
+
+    private function storeFiltersInSession(): void
+    {
+        $payload = [];
+        foreach ($this->persistedFilterKeys() as $prop) {
+            $payload[$prop] = $this->{$prop};
+        }
+        session()->put($this->sessionKey(), $payload);
+    }
+
     private function sortMapping(): array
     {
         $priceCol = 'sales' === $this->channel ? 'properties.price_sales' : 'properties.price_lettings';

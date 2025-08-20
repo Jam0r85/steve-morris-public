@@ -10,7 +10,7 @@
                 <div class="grid grid-cols-1 gap-10 py-16 lg:grid-cols-3">
                     <div>
                         <flux:heading level="2" size="xl">Get in touch</flux:heading>
-                        <flux:text class="mt-4 text-gray-600">
+                        <flux:text class="mt-4 text-zinc-600">
                             The best way to contact us is either by email or phone.
                         </flux:text>
                     </div>
@@ -36,7 +36,7 @@
                 <div class="grid grid-cols-1 gap-10 py-16 lg:grid-cols-3">
                     <div>
                         <flux:heading level="2" size="xl">Locations</flux:heading>
-                        <flux:text class="mt-4 text-gray-600">Where you can visit us.</flux:text>
+                        <flux:text class="mt-4 text-zinc-600">Where you can visit us.</flux:text>
                     </div>
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2 lg:gap-8">
                         @foreach ([['title' => 'Sutton Coldfield', 'address' => '1 Coleshill Street, Sutton Coldfield, West Midlands, B72 1SD']]

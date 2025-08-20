@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-final class PropertyMedia extends Model
+class PropertyMedia extends Model
 {
     protected $fillable = [
         'property_id', 'category', 'url', 'sort_order', 'width', 'height',

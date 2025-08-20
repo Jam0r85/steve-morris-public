@@ -6,7 +6,7 @@ namespace App\Services\Slugs;
 
 use Illuminate\Support\Str;
 
-final class PropertySlugService
+class PropertySlugService
 {
     /**
      * Build an SEO slug from address_single_line + postcode (district/sector).

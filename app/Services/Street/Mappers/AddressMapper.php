@@ -6,7 +6,7 @@ namespace App\Services\Street\Mappers;
 
 use App\Services\Street\Support\IncludedIndex;
 
-final class AddressMapper
+class AddressMapper
 {
     /**
      * Build address fields from property attributes + included address (if present).

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Street\Support;
 
-final class IncludedIndex
+class IncludedIndex
 {
     /** @var array<string, array<string, array>> */
     private array $index = [];

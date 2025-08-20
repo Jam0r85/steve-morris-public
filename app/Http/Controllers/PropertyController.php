@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildPropertyPage;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
-final class PropertyController extends Controller
+class PropertyController extends Controller
 {
     public function sales()
     {
@@ -23,44 +24,37 @@ final class PropertyController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $channel, string $slug, string $slug_id)
+    public function show(Request $request, string $channel, string $slug, Property $property, BuildPropertyPage $build)
     {
-        // Look up by short id (fast, stable)
-        $prop = Property::query()
-            ->where('slug_id', $slug_id)
-            ->with(['media' => fn($m) => $m->orderBy('category')->orderBy('sort_order')])
-            ->firstOrFail();
+        // Eager-load media in the order you want
+        $property->load(['media' => fn ($m) => $m->orderBy('category')->orderBy('sort_order')]);
 
-        // Guard channel mismatch (someone visiting /sales for a lettings property)
-        if ($prop->listing_category !== $channel) {
-            return redirect()->route('properties.show', [
-                'channel' => $prop->listing_category,
-                'slug' => $prop->slug,
-                'slug_id' => $prop->slug_id,
-            ], 301);
-        }
-
-        // 301 if slug changed (you already store old slugs for history—optional extra check)
-        if ($prop->slug && $prop->slug !== $slug) {
+        // Guard channel mismatch (e.g., visiting /sales for a lettings property)
+        if ($property->listing_category !== $channel) {
             return redirect()->route('properties.show', [
                 'channel' => $channel,
-                'slug' => $prop->slug,
-                'slug_id' => $prop->slug_id,
+                'slug' => $property->slug,
+                'property' => $property->slug_id,
             ], 301);
         }
 
-        // Archived UX (keep 200, show banner + similar props)
-        $similar = Property::query()
-            ->active(true)
-            ->where('listing_category', $channel)
-            ->inTown($prop->address_town)
-            ->bedsAtLeast(max(1, (int) $prop->bedrooms - 1))
-            ->bedsAtMost((int) $prop->bedrooms + 1)
-            ->whereKeyNot($prop->getKey())
-            ->withPrimaryMedia()
-            ->limit(6)
-            ->get();
+        // Canonical slug redirect if the slug changed
+        if ( ! empty($property->slug) && $property->slug !== $slug) {
+            return redirect()->route('properties.show', [
+                'channel' => $channel,
+                'slug' => $property->slug,
+                'property' => $property->slug_id,
+            ], 301);
+        }
 
-        return view('properties.show', compact('prop', 'similar'));
+        // Build page data (meta, gallery images, json-ld, etc.)
+        $page = $build($property, $channel);
+        $similar = $property->similar($channel, 6);
+
+        return view('properties.show', array_merge([
+            'channel' => $channel,
+            'property' => $property,
+            'similar' => $similar,
+        ], $page));
     }
 }

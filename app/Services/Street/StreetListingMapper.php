@@ -15,7 +15,7 @@ use App\Services\Street\Support\IncludedIndex;
 use Carbon\Carbon;
 use Throwable;
 
-final class StreetListingMapper
+class StreetListingMapper
 {
     /** @return array{property: array, media: array} */
     public static function mapResource(array $res, array $included, string $channel): array

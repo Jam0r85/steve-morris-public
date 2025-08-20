@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-final class PropertySlugRedirect extends Model
+class PropertySlugRedirect extends Model
 {
     protected $fillable = ['property_id', 'old_slug'];
 }

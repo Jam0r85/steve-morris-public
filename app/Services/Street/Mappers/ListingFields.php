@@ -7,7 +7,7 @@ namespace App\Services\Street\Mappers;
 use App\Services\Street\Support\IncludedIndex;
 use Carbon\Carbon;
 
-final class ListingFields
+class ListingFields
 {
     /** @return array{fields:array, updated_at:?Carbon} */
     public static function lettings(array $attributes, array $relationships, IncludedIndex $inc): array

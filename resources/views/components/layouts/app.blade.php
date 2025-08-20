@@ -14,6 +14,12 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+        <style>
+            [x-cloak] {
+                display: none !important;
+            }
+        </style>
+
         <title>{{ $pageTitle }}</title>
 
         <meta name="description" content="{{ $description }}" />
@@ -47,24 +53,36 @@
         @fluxAppearance
     </head>
     <body class="bg-white">
-        <header>
-            <nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
-                <div class="flex flex-1">
-                    <flux:navbar class="space-x-4">
-                            <flux:dropdown>
-                                <flux:navbar.item icon:trailing="chevron-down">Properties</flux:navbar.item>
-                                <flux:navmenu>
-                                    <flux:navmenu.item href="{{ route('properties.lettings') }}">To Let</flux:navmenu.item>
-                                    <flux:navmenu.item href="{{ route('properties.sales') }}">For Sale</flux:navmenu.item>
-                                </flux:navmenu>
-                            </flux:dropdown>
+        <header
+            x-data="{ open: false }"
+            x-on:keydown.escape.window="open=false"
+            x-effect="document.body.classList.toggle('overflow-hidden', open)"
+        >
+            <nav
+                class="mx-auto flex max-w-7xl items-start justify-between p-6 lg:items-center lg:px-8"
+                aria-label="Global"
+            >
+                <div class="flex flex-1 items-start lg:items-center">
+                    <flux:navbar class="hidden space-x-4 lg:flex">
+                        <flux:dropdown>
+                            <flux:navbar.item icon:trailing="chevron-down">Properties</flux:navbar.item>
+                            <flux:navmenu>
+                                <flux:navmenu.item href="{{ route('properties.lettings') }}">To Let</flux:navmenu.item>
+                                <flux:navmenu.item href="{{ route('properties.sales') }}">For Sale</flux:navmenu.item>
+                            </flux:navmenu>
+                        </flux:dropdown>
                         <flux:navbar.item href="{{ route('lettings') }}" title="Lettings">Lettings</flux:navbar.item>
                         <flux:navbar.item href="{{ route('contact') }}" title="Contact">Contact</flux:navbar.item>
                     </flux:navbar>
-                    <div class="flex lg:hidden">
+
+                    {{-- Mobile open button (top-aligned) --}}
+                    <div class="self-start lg:hidden">
                         <button
                             type="button"
-                            class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+                            class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-zinc-700"
+                            @click="open = true"
+                            :aria-expanded="open.toString()"
+                            aria-controls="mobile-menu-panel"
                         >
                             <span class="sr-only">Open main menu</span>
                             <svg
@@ -74,7 +92,6 @@
                                 stroke-width="1.5"
                                 stroke="currentColor"
                                 aria-hidden="true"
-                                data-slot="icon"
                             >
                                 <path
                                     stroke-linecap="round"
@@ -85,10 +102,10 @@
                         </button>
                     </div>
                 </div>
+
                 <div>
-                    <span class="sr-only">Your Company</span>
                     <a href="{{ url('/') }}" title="{{ config('app.name') }}" class="-m-1.5 p-1.5">
-                        <span class="sr-only">Your Company</span>
+                        <span class="sr-only">{{ config('app.name') }}</span>
                         <img
                             class="h-16 w-auto"
                             src="{{ asset('images/logo.webp') }}"
@@ -96,20 +113,35 @@
                         />
                     </a>
                 </div>
-                <div class="flex flex-1 justify-end">
+
+                <div class="hidden flex-1 justify-end lg:flex">
                     <flux:link href="{{ route('valuation') }}" title="Book Valuation" external>
                         <flux:button variant="primary" icon:trailing="arrow-up-right">Book Valuation</flux:button>
                     </flux:link>
                 </div>
             </nav>
+
             <!-- Mobile menu, show/hide based on menu open state. -->
-            <div class="lg:hidden" role="dialog" aria-modal="true">
-                <!-- Background backdrop, show/hide based on slide-over state. -->
-                <div class="fixed inset-0 z-10"></div>
-                <div class="fixed inset-y-0 left-0 z-10 w-full overflow-y-auto bg-white px-6 py-6">
-                    <div class="flex items-center justify-between">
+            <div class="lg:hidden" role="dialog" aria-modal="true" x-cloak x-show="open">
+                <!-- Background backdrop -->
+                <div class="fixed inset-0 z-40 bg-black/50" @click="open=false" x-transition.opacity></div>
+
+                <!-- Slide-over panel -->
+                <div
+                    id="mobile-menu-panel"
+                    class="fixed inset-y-0 left-0 z-50 w-full transform overflow-y-auto bg-white px-6 py-6 sm:max-w-sm"
+                    x-transition:enter="transition duration-200 ease-out"
+                    x-transition:enter-start="-translate-x-full opacity-0"
+                    x-transition:enter-end="translate-x-0 opacity-100"
+                    x-transition:leave="transition duration-150 ease-in"
+                    x-transition:leave-start="translate-x-0 opacity-100"
+                    x-transition:leave-end="-translate-x-full opacity-0"
+                    tabindex="-1"
+                    x-trap.noscroll.inert="open"
+                >
+                    <div class="flex items-start justify-between">
                         <div class="flex flex-1">
-                            <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
+                            <button type="button" class="-m-2.5 rounded-md p-2.5 text-zinc-700" @click="open=false">
                                 <span class="sr-only">Close menu</span>
                                 <svg
                                     class="size-6"
@@ -118,47 +150,83 @@
                                     stroke-width="1.5"
                                     stroke="currentColor"
                                     aria-hidden="true"
-                                    data-slot="icon"
                                 >
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <a href="#" class="-m-1.5 p-1.5">
-                            <span class="sr-only">Your Company</span>
+
+                        <a href="{{ url('/') }}" class="-m-1.5 p-1.5" @click="open=false">
+                            <span class="sr-only">
+                                {{ config('app.name') }}
+                            </span>
                             <img
                                 class="h-8 w-auto"
-                                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                alt=""
+                                src="{{ asset('images/logo.webp') }}"
+                                alt="{{ config('app.name') }}"
                             />
                         </a>
+
                         <div class="flex flex-1 justify-end">
-                            <a href="#" class="text-sm/6 font-semibold text-gray-900">
-                                Log in
+                            <a
+                                href="{{ route('valuation') }}"
+                                class="text-sm/6 font-semibold text-zinc-900"
+                                @click="open=false"
+                            >
+                                Book Valuation
                                 <span aria-hidden="true">&rarr;</span>
                             </a>
                         </div>
                     </div>
-                    <div class="mt-6 space-y-2">
+
+                    <nav class="mt-6 space-y-2" aria-label="Mobile">
+                        <div>
+                            <p class="px-3 py-2 text-xs font-semibold text-zinc-500 uppercase">Properties</p>
+                            <a
+                                href="{{ route('properties.lettings') }}"
+                                class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50"
+                                @click="open=false"
+                            >
+                                To Let
+                            </a>
+                            <a
+                                href="{{ route('properties.sales') }}"
+                                class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50"
+                                @click="open=false"
+                            >
+                                For Sale
+                            </a>
+                        </div>
+
                         <a
-                            href="#"
-                            class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                            href="{{ route('lettings') }}"
+                            class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50"
+                            @click="open=false"
                         >
-                            Product
+                            Lettings
                         </a>
+
                         <a
-                            href="#"
-                            class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                            href="{{ route('contact') }}"
+                            class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50"
+                            @click="open=false"
                         >
-                            Features
+                            Contact
                         </a>
-                        <a
-                            href="#"
-                            class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                        >
-                            Company
-                        </a>
-                    </div>
+
+                        <div class="pt-4">
+                            <flux:link href="{{ route('valuation') }}" external>
+                                <flux:button
+                                    class="w-full"
+                                    variant="primary"
+                                    icon:trailing="arrow-up-right"
+                                    @click="open=false"
+                                >
+                                    Book Valuation
+                                </flux:button>
+                            </flux:link>
+                        </div>
+                    </nav>
                 </div>
             </div>
         </header>

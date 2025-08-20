@@ -7,7 +7,7 @@ namespace App\Services\Street\Mappers;
 use App\Services\Street\Support\IncludedIndex;
 use Carbon\Carbon;
 
-final class EpcMapper
+class EpcMapper
 {
     /**
      * Extract EPC fields from the EPC relationship (if present).

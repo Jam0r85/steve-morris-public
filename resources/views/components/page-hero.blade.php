@@ -5,7 +5,7 @@
 
 <section class="bg-accent overflow-hidden">
     <flux:main container>
-        <flux:heading level="1" class="text-accent-foreground text-3xl leading-tight sm:text-5xl">
+        <flux:heading size="xl" level="1" class="text-accent-foreground text-3xl leading-tight sm:text-5xl">
             {{ $title }}
         </flux:heading>
 
@@ -14,5 +14,7 @@
                 {{ $intro }}
             </flux:text>
         @endif
+
+        {{  $slot }}
     </flux:main>
 </section>

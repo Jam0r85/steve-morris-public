@@ -11,7 +11,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl">
                 <h2 class="text-2xl font-semibold sm:text-4xl">Why work with us</h2>
-                <p class="mt-3 text-gray-600">
+                <p class="mt-3 text-zinc-600">
                     Clear expectations, friendly culture, and tools that let you do your best work.
                 </p>
             </div>
