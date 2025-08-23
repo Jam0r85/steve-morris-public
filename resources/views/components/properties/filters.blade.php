@@ -1,19 +1,19 @@
 @props([
-    "channel" => "lettings",
-    "priceMin" => null,
-    "priceMax" => null,
-    "hasActiveFilters" => false,
+    'channel' => 'lettings',
+    'priceMin' => null,
+    'priceMax' => null,
+    'hasActiveFilters' => false,
 ])
 
 @php
-    $isLettings = $channel === "lettings";
-    $minRange = $isLettings ? range(0, 2000, 50) : range(50000, 1500000, 100000);
+    $isLettings = $channel === 'lettings';
+    $minRange = $isLettings ? range(0, 2000, 100) : range(50000, 1500000, 100000);
     $maxRange = $minRange;
     $capValue = $isLettings ? 2001 : 1500001;
-    $capLabel = $isLettings ? "£2,000+" : "£1,500,000+";
+    $capLabel = $isLettings ? '£2,000+' : '£1,500,000+';
 
-    $minSelected = $priceMin === "" || $priceMin === null ? null : (int) $priceMin;
-    $maxSelected = $priceMax === "" || $priceMax === null ? null : (int) $priceMax;
+    $minSelected = $priceMin === '' || $priceMin === null ? null : (int) $priceMin;
+    $maxSelected = $priceMax === '' || $priceMax === null ? null : (int) $priceMax;
 
     $limitForMin = is_null($maxSelected) ? null : ($maxSelected === $capValue ? max($minRange) : $maxSelected);
     $minOptions = array_values(array_filter($minRange, fn ($p) => is_null($limitForMin) ? true : $p < $limitForMin));
@@ -29,7 +29,7 @@
     }
 @endphp
 
-<flux:card class="mb-6">
+<flux:card class="bg-zinc-100">
     <div class="p-4">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
             {{-- Row 1 --}}

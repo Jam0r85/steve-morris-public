@@ -2,20 +2,23 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\TenantsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
 
 Route::get('/about', fn () => view('about'))->name('about');
 
-Route::get('/contact', fn () => view('contact'))->name('contact');
+Route::get('/contact', ContactController::class)->name('contact');
 
 Route::get('/jobs', fn () => view('jobs'))->name('jobs');
 
 Route::get('/complaint-procedure', fn () => view('complaint-procedure'))->name('complaint-procedure');
 
-Route::get('/lettings', fn () => view('welcome'))->name('lettings');
+Route::get('/landlords', fn () => view('landlords'))->name('landlords');
+Route::get('/tenants', TenantsController::class)->name('tenants');
 
 Route::get('/for-sale', [PropertyController::class, 'sales'])->name('properties.sales');
 Route::get('/to-rent', [PropertyController::class, 'lettings'])->name('properties.lettings');

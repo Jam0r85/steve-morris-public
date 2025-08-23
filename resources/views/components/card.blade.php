@@ -1,10 +1,10 @@
 @props([
     'title',
     'body',
-    'bodyTextSize' => 'sm',
+    'bodyTextSize' => null,
 ])
 
-<flux:card size="sm">
+<flux:card>
     <flux:heading size="lg">
         {{ $title }}
     </flux:heading>

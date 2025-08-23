@@ -27,12 +27,20 @@
                 Careers
             </flux:link>
             <flux:link
-                href="{{ route('lettings') }}"
-                title="Lettings"
+                href="{{ route('landlords') }}"
+                title="Landlords"
                 class="text-accent-foreground hover:text-white"
                 variant="ghost"
             >
-                Lettings
+                Landlords
+            </flux:link>
+            <flux:link
+                href="{{ route('tenants') }}"
+                title="Tenants"
+                class="text-accent-foreground hover:text-white"
+                variant="ghost"
+            >
+                Tenants
             </flux:link>
             <flux:link
                 href="{{ route('contact') }}"

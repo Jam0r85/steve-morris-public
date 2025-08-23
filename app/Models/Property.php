@@ -15,6 +15,7 @@ class Property extends Model
         'price_sales', 'price_qualifier', 'display_price',
         'price_lettings', 'rent_frequency', 'deposit', 'furnished',
         'epc_rating',
+        'branch_id',
         'bedrooms', 'bathrooms', 'receptions',
         'property_type', 'property_style',
         'address_line1', 'address_town', 'address_postcode', 'address_single_line',
@@ -194,7 +195,10 @@ class Property extends Model
         return compact('derived', 'additional');
     }
 
-    /* ------------------------- Relations & media helpers ------------------------- */
+    public function slugRedirects()
+    {
+        return $this->hasMany(PropertySlugRedirect::class);
+    }
 
     public function media()
     {
@@ -340,6 +344,38 @@ class Property extends Model
             ->withPrimaryMedia()
             ->limit($limit)
             ->get();
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id', 'uuid');
+    }
+
+    public function seoTitle(): string
+    {
+        $type = $this->property_type ?: 'Property';
+        $bedrooms = $this->bedrooms ? "{$this->bedrooms} Bed" : '';
+        $town = $this->address_town ?: '';
+        $postcode = $this->address_postcode ?: '';
+
+        return mb_trim(implode(' ', array_filter([
+            $bedrooms,
+            $type,
+            $town ? "in {$town}," : '',
+            $postcode,
+        ])));
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $model): void {
+            if ($model->isDirty('slug')) {
+                $old = $model->getOriginal('slug');
+                if ($old) {
+                    $model->slugRedirects()->create(['old_slug' => $old]);
+                }
+            }
+        });
     }
 
     /* --------------------------------- Scopes ----------------------------------- */

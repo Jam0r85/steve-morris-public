@@ -38,8 +38,6 @@ return [
     ],
 
     'street' => [
-        'failed_jobs_email' => env('STREET_FAILED_JOBS_EMAIL', 'you@example.com'),
-
         // Open API
         'open' => [
             'url' => env('STREET_OPEN_API_URL'),
@@ -66,5 +64,10 @@ return [
                 'max_results' => env('STREET_LETTINGS_MAX_RESULTS'),
             ],
         ],
+
+        'failed_jobs_email' => env('STREET_FAILED_JOBS_EMAIL', 'you@example.com'),
+        'branch_email' => env('STREET_BRANCH_EMAIL', null),
+        'custom_source' => env('STREET_CUSTOM_SOURCE', 'Website'),
+        'branch_uuid' => env('STREET_BRANCH_UUID', null), // optional, if you want to pass one
     ],
 ];

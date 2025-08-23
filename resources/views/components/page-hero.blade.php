@@ -10,11 +10,13 @@
         </flux:heading>
 
         @if ($intro)
-            <flux:text class="text-accent-foreground mt-4 max-w-xl text-lg">
-                {{ $intro }}
-            </flux:text>
+            <div class="leading-6">
+                <flux:text class="text-accent-foreground mt-4 max-w-xl text-base">
+                    {{ $intro }}
+                </flux:text>
+            </div>
         @endif
 
-        {{  $slot }}
+        {{ $slot }}
     </flux:main>
 </section>

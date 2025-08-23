@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Actions\BuildPropertyPage;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
@@ -12,33 +11,43 @@ class PropertyController extends Controller
 {
     public function sales()
     {
-        return view('properties.index', [
+        return view('properties', [
             'channel' => 'sales',
         ]);
     }
 
     public function lettings()
     {
-        return view('properties.index', [
+        return view('properties', [
             'channel' => 'lettings',
         ]);
     }
 
-    public function show(Request $request, string $channel, string $slug, Property $property, BuildPropertyPage $build)
-    {
-        // Eager-load media in the order you want
-        $property->load(['media' => fn ($m) => $m->orderBy('category')->orderBy('sort_order')]);
-
-        // Guard channel mismatch (e.g., visiting /sales for a lettings property)
+    public function show(
+        Request $request,
+        string $channel,
+        string $slug,
+        Property $property
+    ) {
+        // --- 1) Guard channel mismatch ---
         if ($property->listing_category !== $channel) {
             return redirect()->route('properties.show', [
-                'channel' => $channel,
-                'slug' => $property->slug,
+                'channel' => $property->listing_category,
+                'slug' => $property->slug ?: $slug,
                 'property' => $property->slug_id,
             ], 301);
         }
 
-        // Canonical slug redirect if the slug changed
+        // --- 2) Handle old slugs ---
+        if ($property->slugRedirects()->where('old_slug', $slug)->exists()) {
+            return redirect()->route('properties.show', [
+                'channel' => $channel,
+                'slug' => $property->slug ?: $slug,
+                'property' => $property->slug_id,
+            ], 301);
+        }
+
+        // --- 3) Canonical slug redirect ---
         if ( ! empty($property->slug) && $property->slug !== $slug) {
             return redirect()->route('properties.show', [
                 'channel' => $channel,
@@ -47,14 +56,35 @@ class PropertyController extends Controller
             ], 301);
         }
 
-        // Build page data (meta, gallery images, json-ld, etc.)
-        $page = $build($property, $channel);
-        $similar = $property->similar($channel, 6);
+        // --- 4) Eager-load media ---
+        $property->load([
+            'media' => fn ($m) => $m->orderBy('category')->orderBy('sort_order'),
+        ]);
 
-        return view('properties.show', array_merge([
+        $title = $property->seoTitle();
+        $description = $property->short_description
+            ?: ($property->short_description_lettings
+                ?: str($property->full_description)->limit(160));
+
+        // --- 6) Structured Data ---
+        $jsonLdScript = app(\App\Support\StructuredData::class)->propertyDetailPage(
+            orgName: config('app.name', 'Steve Morris & Son LLP'),
+            orgUrl: url('/'),
+            pageUrl: url()->current(),
+            property: $property,
+            channel: $channel,
+        );
+
+        // --- 7) No similar yet, pass empty collection ---
+        $similar = collect();
+
+        return view('property', [
             'channel' => $channel,
             'property' => $property,
             'similar' => $similar,
-        ], $page));
+            'title' => $title,
+            'description' => $description,
+            'jsonLdScript' => $jsonLdScript,
+        ]);
     }
 }
