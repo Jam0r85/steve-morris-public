@@ -105,7 +105,7 @@
             <div class="col-span-1 md:col-span-4">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div class="flex items-center gap-3">
-                        <flux:label class="m-0">Include inactive</flux:label>
+                        <flux:label class="m-0">Include {{ $isLettings ? 'Applied For' : 'Sold STC' }}</flux:label>
                         <flux:switch wire:model.live="includeInactive" :checked="$includeInactive ?? false" />
                         <flux:error name="includeInactive" />
                     </div>
